@@ -215,7 +215,7 @@ pub const CURRENT_TIME: Timestamp = 0;
 /// This constant can be used to fill unused entries in `Keysym` tables
 pub const NO_SYMBOL: Keysym = 0;
 
-#[cfg(not(unix))]
+#[cfg(all(not(unix), not(target_arch = "wasm32")))]
 fn hostname() -> OsString {
     gethostname::gethostname()
 }
@@ -225,4 +225,11 @@ fn hostname() -> OsString {
     use std::os::unix::ffi::OsStringExt;
 
     OsString::from_vec(rustix::system::uname().nodename().to_bytes().to_vec())
+}
+
+/// On WASM/WASI platforms, returns a fixed hostname "wasm-host" since these
+/// environments typically don't have access to the actual hostname.
+#[cfg(target_arch = "wasm32")]
+fn hostname() -> OsString {
+    OsString::from("wasm-host")
 }
